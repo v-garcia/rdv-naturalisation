@@ -143,7 +143,10 @@ const checkForFreeDesk = async page => {
 
 (async function main() {
   while (true) {
-    const browser = await puppeteer.launch({ headless: !SHOW_BROWSER });
+    const browser = await puppeteer.launch({
+      headless: !SHOW_BROWSER,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
     const page = await browser.newPage();
 
     try {
