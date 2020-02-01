@@ -6,7 +6,7 @@ Prerequisites: `git` + `git bash for windows` + `nodejs > 12.x`
 
 ```bash
 # Windows: Use Git Bash
-./transcrypt -c aes-256-cbc -p 'my password'
+./transcrypt.sh -c aes-256-cbc -p 'my password'
 ```
 
 - Update **hostName** in config.json
