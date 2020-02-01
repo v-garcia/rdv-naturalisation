@@ -93,7 +93,7 @@ const isDeskAvailable = async (page, deskNumber) => {
   await page.click(`[value="${deskNumber}"`);
 
   // Full redirect promise, to wait after form submission
-  const navPromise = page.waitForNavigation({ waitUntil: "domcontentloaded" });
+  const navPromise = page.waitForNavigation({ waitUntil: "networkidle0" });
 
   // Submit form
   await page.click('#FormBookingCreate [type="submit"]');
@@ -118,7 +118,8 @@ const checkForFreeDesk = async page => {
 
   console.info(`Checking following desks: ${desks} (${desks.length})`);
 
-  for (deskNb of desks) {
+  for (i = 0; i < desks.length; i++) {
+    const deskNb = desks[i];
     const resp = await isDeskAvailable(page, deskNb);
 
     if (resp) {
@@ -127,12 +128,10 @@ const checkForFreeDesk = async page => {
     }
 
     console.info(
-      `X Desk ${desks.indexOf(deskNb) + 1}/${
-        desks.length
-      } -- (${deskNb}) not available`
+      `X Desk ${i + 1}/${desks.length} -- (${deskNb}) not available`
     );
 
-    await pTimeout(WAIT_BETWEEN_DESKS);
+    await pTimeout(WAIT_BETWEEN_DESKS * (i / 2));
   }
 
   return false;
