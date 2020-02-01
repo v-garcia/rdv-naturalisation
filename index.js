@@ -9,23 +9,36 @@ const sgMail = require("@sendgrid/mail");
 
 const DESK_SELECTION_URL =
   "http://www.haute-garonne.gouv.fr/booking/create/7736/1";
-const WAIT_DURATION_IF_BANNED = 40 * 60; // 40 minutes
-const WAIT_DURATION = 5 * 60; // 5 minutes
+
+const SHOW_BROWSER = true;
+const WAIT_DURATION_IF_BANNED = 40 * 60 * 1000; // 40 minutes
+const WAIT_DURATION = 5 * 60 * 1000; // 5 minutes
+const WAIT_BETWEEN_DESKS = 60 * 1000; // 60 seconds
 
 // =============================================================================
 // Utils
 
-const timeout = seconds =>
-  new Promise(resolve => setTimeout(resolve, seconds * 1000));
+const timeout = t => new Promise(resolve => setTimeout(resolve, t));
 
-const duration = s => formatDistance(0, s * 1000, { includeSeconds: true });
+// Poisson distribution timeout
+const pTimeout = t => timeout(-Math.log(Math.random()) * t);
+
+const duration = s => formatDistance(0, s, { includeSeconds: true });
+
+const shuffle = a => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 const sendNotification = (title, message) =>
   got
     .post(`${config.gotifyUrl}/message`, {
       headers: { "X-Gotify-Key": config.gotifyToken },
       json: {
-        title: `${config.hostName}: title`,
+        title: `${config.hostName}: ${title}`,
         message: message,
         priority: 1
       },
@@ -101,7 +114,7 @@ const isDeskAvailable = async (page, deskNumber) => {
 };
 
 const checkForFreeDesk = async page => {
-  const desks = await getAllDesks(page);
+  const desks = shuffle(await getAllDesks(page));
 
   console.info(`Checking following desks: ${desks} (${desks.length})`);
 
@@ -118,6 +131,8 @@ const checkForFreeDesk = async page => {
         desks.length
       } -- (${deskNb}) not available`
     );
+
+    await pTimeout(WAIT_BETWEEN_DESKS);
   }
 
   return false;
@@ -128,7 +143,7 @@ const checkForFreeDesk = async page => {
 
 (async function main() {
   while (true) {
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless: !SHOW_BROWSER });
     const page = await browser.newPage();
 
     try {
@@ -137,7 +152,7 @@ const checkForFreeDesk = async page => {
         console.info("!!! Desk found !!!");
         sendSuccessMail();
         sendNotification("SUCCESS", "A desk was found");
-        await timeout(60 * 60 * 48); // U have 48h to come in and fill the form !!!
+        await timeout(1000 * 60 * 60 * 48); // U have 48h to come in and fill the form !!!
       } else {
         console.info(
           `No desk found, closing browser and wait for ${duration(
@@ -145,19 +160,20 @@ const checkForFreeDesk = async page => {
           )}`
         );
         await browser.close();
-        await timeout(WAIT_DURATION);
+        await pTimeout(WAIT_DURATION);
       }
     } catch (e) {
       // If an exception is throwed, it means we are banned
       console.warn(
         `!!! BANNED, Closing browser and wait for ${duration(
           WAIT_DURATION_IF_BANNED
-        )}`
+        )} |||`,
+        e.toString()
       );
 
       sendNotification("Banned", `${e.toString()}`);
       await browser.close();
-      await timeout(WAIT_DURATION_IF_BANNED);
+      await pTimeout(WAIT_DURATION_IF_BANNED);
     }
   }
 })();
