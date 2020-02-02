@@ -2,7 +2,8 @@ const formatDistance = require("date-fns/formatDistance");
 const got = require("got");
 const sgMail = require("@sendgrid/mail");
 const config = require("./config");
-var twilio = require("twilio");
+const twilio = require("twilio");
+const format = require("date-fns/format");
 
 const WAIT_DURATION_IF_BANNED = 40 * 60 * 1000; // 40 minutes
 const WAIT_DURATION = 15 * 60 * 1000; // 15 minutes
@@ -10,7 +11,15 @@ const WAIT_BETWEEN_DESKS = 60 * 1000; // 60 seconds
 const DESK_SELECTION_URL =
   "http://www.haute-garonne.gouv.fr/booking/create/7736/1";
 
-const timeout = t => new Promise(resolve => setTimeout(resolve, t));
+const timeout = t => {
+  console.info(
+    `Waiting for ${duration(WAIT_DURATION)} (starting ${format(
+      new Date(),
+      "HH:mm"
+    )})`
+  );
+  return new Promise(resolve => setTimeout(resolve, t));
+};
 
 // Poisson distribution timeout
 const pTimeout = t => timeout(-Math.log(Math.random()) * t);

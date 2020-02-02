@@ -101,7 +101,7 @@ async function main() {
         sendSuccessSms({ desk: success });
         sendNotification("SUCCESS", `A desk was found (desk:${success})`);
       } else {
-        console.info(`No desk found waiting for ${duration(WAIT_DURATION)}`);
+        console.info(`No desk found`);
       }
       // Lol we continue spamming even if found
       await pTimeout(WAIT_DURATION);

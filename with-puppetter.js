@@ -120,11 +120,7 @@ async function main() {
         sendNotification("SUCCESS", "A desk was found");
         await timeout(1000 * 60 * 60 * 48); // U have 48h to come in and fill the form !!!
       } else {
-        console.info(
-          `No desk found, closing browser and wait for ${duration(
-            WAIT_DURATION
-          )}`
-        );
+        console.info(`No desk found, closing browser`);
         await browser.close();
         await pTimeout(WAIT_DURATION);
       }
