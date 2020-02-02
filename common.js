@@ -13,10 +13,7 @@ const DESK_SELECTION_URL =
 
 const timeout = t => {
   console.info(
-    `Waiting for ${duration(WAIT_DURATION)} (starting ${format(
-      new Date(),
-      "HH:mm"
-    )})`
+    `Waiting for ${duration(t)} (starting ${format(new Date(), "HH:mm")})`
   );
   return new Promise(resolve => setTimeout(resolve, t));
 };
