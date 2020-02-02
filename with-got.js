@@ -92,8 +92,6 @@ const checkForFreeDesk = async () => {
 };
 
 async function main() {
-  await sendSuccessSms({ desk: "2038" });
-  return;
   while (true) {
     try {
       const success = await checkForFreeDesk();
