@@ -19,7 +19,11 @@ const timeout = t => {
 };
 
 // Poisson distribution timeout
-const pTimeout = t => timeout(-Math.log(Math.random()) * t);
+const pTimeout = (t, constraint) => {
+  constraint = constraint || 0.3;
+  const pTime = -Math.log(Math.random()) * t;
+  return Math.abs(pTime - t) > constraint * t ? pTimeout(t, constraint) : timeout(pTime);
+};
 
 const duration = s => formatDistance(0, s, { includeSeconds: true });
 
